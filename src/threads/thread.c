@@ -593,6 +593,7 @@ allocate_tid (void)
    Used by switch.S, which can't figure it out on its own. */
 uint32_t thread_stack_ofs = offsetof (struct thread, stack);
 
+//my modification
 void
 blocked_thread_check(struct thread *t, void *aux UNUSED)
 {
