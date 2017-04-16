@@ -207,13 +207,7 @@ thread_create (const char *name, int priority,
   intr_set_level (old_level);
 
   /* Add to run queue. */
-  //TODO:might need to change here
   thread_unblock (t);
-
-  if(priority > thread_current()->priority)
-  {
-    thread_yield();
-  }  
 
   return tid;
 }
@@ -255,7 +249,7 @@ thread_unblock (struct thread *t)
   //list_push_back (&ready_list, &t->elem);
   
   //my mod
-  list_insert_ordered(&ready_list, &t->elem, is_higher_priority, NULL);
+  list_insert_ordered(&ready_list, &t->elem, isless, NULL);
   
   t->status = THREAD_READY;
   intr_set_level (old_level);
@@ -327,7 +321,7 @@ thread_yield (void)
 
   old_level = intr_disable ();
   if (cur != idle_thread)
-    list_insert_ordered(&ready_list, &cur->elem, is_higher_priority, NULL);
+    list_insert_ordered(&ready_list, &cur->elem, isless, NULL);
     //list_push_back (&ready_list, &cur->elem);
   cur->status = THREAD_READY;
   schedule ();
@@ -356,12 +350,6 @@ void
 thread_set_priority (int new_priority) 
 {
   thread_current ()->priority = new_priority;
-
-  //TODO:change might have to be made here
-  struct thread *max = list_max(&ready_list, is_less_priority, UNUSED);
-
-  if(max->priority > new_priority)
-    thread_yield();    //put the current thread to poper place
 }
 
 /* Returns the current thread's priority. */
@@ -488,7 +476,7 @@ init_thread (struct thread *t, const char *name, int priority)
   t->priority = priority;
   t->magic = THREAD_MAGIC;
   //list_push_back (&all_list, &t->allelem);
-  list_insert_ordered (&all_list, &t->allelem, is_higher_priority, NULL);
+  list_insert_ordered (&all_list, &t->allelem, isless, NULL);
 }
 
 /* Allocates a SIZE-byte frame at the top of thread T's stack and
@@ -620,13 +608,9 @@ blocked_thread_check(struct thread *t, void *aux UNUSED)
 }
 
 bool
-is_higher_priority(const struct list_elem *a, const struct list_elem *b, void *aux UNUSED)
+isless(const struct list_elem *a, const struct list_elem *b, void *aux UNUSED)
 {
-  return list_entry (a, struct thread, elem) > list_entry (b, struct thread, elem); 
-}
-
-bool
-is_less_priority(const struct list_elem *a, const struct list_elem *b, void *aux UNUSED)
-{
-  return list_entry (a, struct thread, elem) < list_entry (b, struct thread, elem); 
+  struct thread *at = list_entry (a, struct thread, elem);
+  struct thread *bt = list_entry (b, struct thread, elem);
+  return at->priority > bt->priority; 
 }
