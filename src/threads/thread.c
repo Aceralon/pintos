@@ -209,6 +209,9 @@ thread_create (const char *name, int priority,
   /* Add to run queue. */
   thread_unblock (t);
 
+  if(thread_current()->priority < priority)
+    thread_yield();
+
   return tid;
 }
 
@@ -350,6 +353,10 @@ void
 thread_set_priority (int new_priority) 
 {
   thread_current ()->priority = new_priority;
+
+  struct thread *max = list_entry(list_max (&ready_list, is_lower_priority, NULL), struct thread, elem);
+  if(max->priority > new_priority)
+    thread_yield();
 }
 
 /* Returns the current thread's priority. */
@@ -611,4 +618,10 @@ bool
 is_higher_priority(const struct list_elem *a, const struct list_elem *b, void *aux UNUSED)
 {
   return list_entry (a, struct thread, elem)->priority > list_entry (b, struct thread, elem)->priority; 
+}
+
+bool
+is_lower_priority(const struct list_elem *a, const struct list_elem *b, void *aux UNUSED)
+{
+  return list_entry (a, struct thread, elem)->priority < list_entry (b, struct thread, elem)->priority; 
 }
