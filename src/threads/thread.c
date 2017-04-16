@@ -358,7 +358,7 @@ thread_set_priority (int new_priority)
   thread_current ()->priority = new_priority;
 
   //TODO:change might have to be made here
-  struct thread *max = list_max(&ready_list, is_lower_priority, UNUSED);
+  struct thread *max = list_max(&ready_list, is_less_priority, UNUSED);
 
   if(max->priority > new_priority)
     thread_yield();    //put the current thread to poper place
@@ -626,7 +626,7 @@ is_higher_priority(const struct list_elem *a, const struct list_elem *b, void *a
 }
 
 bool
-is_lower_priority(const struct list_elem *a, const struct list_elem *b, void *aux UNUSED)
+is_less_priority(const struct list_elem *a, const struct list_elem *b, void *aux UNUSED)
 {
   return list_entry (a, struct thread, elem) < list_entry (b, struct thread, elem); 
 }
