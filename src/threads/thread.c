@@ -210,10 +210,10 @@ thread_create (const char *name, int priority,
   //TODO:might need to change here
   thread_unblock (t);
 
-  // if(priority > thread_current()->priority)
-  // {
-  //   thread_yield();
-  // }
+  if(priority > thread_current()->priority)
+  {
+    thread_yield();
+  }  
 
   return tid;
 }
@@ -360,8 +360,8 @@ thread_set_priority (int new_priority)
   //TODO:change might have to be made here
   struct thread *max = list_max(&ready_list, is_lower_priority, UNUSED);
 
-  // if(max->priority > new_priority)
-  //   thread_yield();    //put the current thread to poper place
+  if(max->priority > new_priority)
+    thread_yield();    //put the current thread to poper place
 }
 
 /* Returns the current thread's priority. */
