@@ -629,13 +629,13 @@ is_higher_priority(const struct list_elem *a, const struct list_elem *b, void *a
 }
 
 void
-check_priority(const struct thread *th)
+check_priority(struct thread *th)
 {
   int max_priority = -1;
-  if(!list_empty(th->locks))
+  if(!list_empty(&th->locks))
   {
     list_sort(&th->locks, is_higher_priority, NULL);
-    max_priority = list_entry (list_begin(&th->locks), struct lock, holder_elem)->priority
+    max_priority = list_entry (list_begin(&th->locks), struct lock, holder_elem)->priority;
   }
   else if(th->old_priority != -1)
   {
