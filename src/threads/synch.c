@@ -285,11 +285,10 @@ lock_release (struct lock *lock)
   //my mod lab3
   struct thread *curr = thread_current();
   struct lock *max_lock;
-  struct thread *max_thread;
 
   list_remove(&lock->holder_elem);
 
-  if(list_empty(curr->locks))
+  if(list_empty(&curr->locks))
   {
     curr->priority = curr->old_priority;
     curr->old_priority = -1;
@@ -308,9 +307,7 @@ lock_release (struct lock *lock)
     }
   }
   
-  max_thread = list_entry(list_begin (&ready_list), struct thread, elem);
-  if(max_thread->priority > curr->priority)
-    thread_yield();
+  thread_yield();
 
   lock->priority = -1;
   lock->holder = NULL;
