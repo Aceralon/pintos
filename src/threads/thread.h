@@ -148,6 +148,7 @@ int thread_get_load_avg (void);
 void blocked_thread_check(struct thread *t, void *aux UNUSED);
 
 bool is_higher_priority(const struct list_elem *a, const struct list_elem *b, void *aux UNUSED);
-bool is_lower_priority(const struct list_elem *a, const struct list_elem *b, void *aux UNUSED);
+
+void check_priority(const struct thread *th);
 
 #endif /* threads/thread.h */

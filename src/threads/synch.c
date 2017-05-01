@@ -218,30 +218,42 @@ lock_acquire (struct lock *lock)
   ASSERT (!lock_held_by_current_thread (lock));
 
   //my modification lab3
-  struct thread *holder = lock->holder;
+  struct thread *lock_holder = lock->holder;
   struct thread *curr = thread_current();
   struct lock *other_lock = lock;
   curr->blocked_lock = lock;
 
-  while(holder != NULL && holder->priority < curr->priority)
+  while(lock_holder != NULL && other_lock->priority < curr->priority)
   {
-    if(holder->old_priority < 0)
-      holder->old_priority = holder->priority;
+    other_lock->priority = curr->priority;
+
+    check_priority(other_lock->holder);
+
+    if(lock_holder->blocked_lock != NULL)
+    {
+      lock_holder = lock_holder->blocked_lock->holder;
+      other_lock = lock_holder->blocked_lock;
+    }
+    else
+      break;
+
+    /*if(holder->old_priority < 0)
+      holder->old_priority = holder->priority;//done
     
-    holder->priority = curr->priority;
-    list_sort(&ready_list, is_higher_priority, NULL);
+    holder->priority = curr->priority;//done
+    list_sort(&ready_list, is_higher_priority, NULL);//done
 
     if(other_lock != NULL && curr->priority > other_lock->priority)
     {
-      other_lock->priority = curr->priority;
-      list_sort(&holder->locks, is_higher_priority, NULL);
+      other_lock->priority = curr->priority;//done
+      list_sort(&holder->locks, is_higher_priority, NULL);//done
     }
 
     if(holder->blocked_lock != NULL)
     {
       holder = holder->blocked_lock->holder;
       other_lock = holder->blocked_lock;
-    }
+    }*/
   }
 
   sema_down (&lock->semaphore);
@@ -287,8 +299,9 @@ lock_release (struct lock *lock)
   struct lock *max_lock;
 
   list_remove(&lock->holder_elem);
-
-  if(list_empty(&curr->locks))
+  check_priority(curr);
+  
+  /*if(list_empty(&curr->locks))
   {
     curr->priority = curr->old_priority;
     curr->old_priority = -1;
@@ -305,9 +318,9 @@ lock_release (struct lock *lock)
       curr->priority = curr->old_priority;
       curr->old_priority = -1;
     }
-  }
+  }*/
   
-  thread_yield();
+  /*thread_yield();*/
 
   lock->priority = -1;
   lock->holder = NULL;

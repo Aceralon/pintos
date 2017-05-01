@@ -355,23 +355,12 @@ thread_set_priority (int new_priority)
   //lab3
   struct thread *curr = thread_current();
 
-  if(curr->old_priority < 0)
-  {
-    curr->priority = new_priority;
-  }
-  else if(new_priority > curr->priority)
-  {
-    curr->priority = new_priority;
-    curr->old_priority = -1;
-  }
-  else
-  {
-    curr->old_priority = new_priority;
-  }
+  curr->old_priority = new_priority;
+  check_priority(curr);
 
-  struct thread *max = list_entry(list_begin (&ready_list), struct thread, elem);
+/*  struct thread *max = list_entry(list_begin (&ready_list), struct thread, elem);
   if(max->priority > curr->priority)
-    thread_yield();
+    thread_yield();*/
 }
 
 /* Returns the current thread's priority. */
@@ -639,8 +628,31 @@ is_higher_priority(const struct list_elem *a, const struct list_elem *b, void *a
   return list_entry (a, struct thread, elem)->priority > list_entry (b, struct thread, elem)->priority; 
 }
 
-bool
-is_lower_priority(const struct list_elem *a, const struct list_elem *b, void *aux UNUSED)
+void
+check_priority(const struct thread *th)
 {
-  return list_entry (a, struct thread, elem)->priority < list_entry (b, struct thread, elem)->priority; 
+  int max_priority = -1;
+  if(!list_empty(th->locks))
+  {
+    list_sort(&th->locks, is_higher_priority, NULL);
+    max_priority = list_entry (list_begin(&th->locks), struct lock, holder_elem)->priority
+  }
+  else if(th->old_priority != -1)
+  {
+    th->priority = th->old_priority;
+    th->old_priority = -1;
+  }
+
+  if(max_priority > th->priority)
+  {
+    if(th->old_priority < 0)
+    {
+      th->old_priority = th->priority;
+    }
+    th->priority = max_priority;
+  }
+
+  /*list_sort(&ready_list, is_higher_priority, NULL);*/
+  thread_yield();
+
 }
