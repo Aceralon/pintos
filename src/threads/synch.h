@@ -24,8 +24,8 @@ struct lock
     struct semaphore semaphore; /* Binary semaphore controlling access. */
 
     /*My modification*/
-    int lock_priority;
-    
+    int priority;
+    struct list_elem holder_elem;
   };
 
 void lock_init (struct lock *);

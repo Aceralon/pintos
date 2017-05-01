@@ -352,10 +352,25 @@ thread_foreach (thread_action_func *func, void *aux)
 void
 thread_set_priority (int new_priority) 
 {
-  thread_current ()->priority = new_priority;
+  //lab3
+  struct thread *curr = thread_current();
+
+  if(curr->old_priority < 0)
+  {
+    curr->priority = new_priority;
+  }
+  else if(new_priority > curr->priority)
+  {
+    curr->priority = new_priority;
+    curr->old_priority = -1;
+  }
+  else
+  {
+    curr->old_priority = new_priority;
+  }
 
   struct thread *max = list_entry(list_begin (&ready_list), struct thread, elem);
-  if(max->priority > new_priority)
+  if(max->priority > curr->priority)
     thread_yield();
 }
 
@@ -486,6 +501,8 @@ init_thread (struct thread *t, const char *name, int priority)
   list_insert_ordered (&all_list, &t->allelem, is_higher_priority, NULL);
   //lab3
   t->old_priority = -1;
+  t->blocked_lock = NULL;
+  
 }
 
 /* Allocates a SIZE-byte frame at the top of thread T's stack and

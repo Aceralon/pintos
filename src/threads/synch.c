@@ -69,7 +69,7 @@ sema_down (struct semaphore *sema)
   while (sema->value == 0) 
     {
       //my modification lab3
-      
+
       //list_push_back (&sema->waiters, &thread_current ()->elem);
       list_insert_ordered(&sema->waiters, &thread_current ()->elem, is_higher_priority, NULL);
       //end of my modification
@@ -118,9 +118,22 @@ sema_up (struct semaphore *sema)
   ASSERT (sema != NULL);
 
   old_level = intr_disable ();
-  if (!list_empty (&sema->waiters)) 
+  /*if (!list_empty (&sema->waiters)) 
     thread_unblock (list_entry (list_pop_front (&sema->waiters),
-                                struct thread, elem));
+                                struct thread, elem));*/
+  struct thread *wait;
+  struct thread *curr = thread_current();
+  
+  if (!list_empty (&sema->waiters))
+  {
+    wait = list_entry (list_pop_front (&sema->waiters), struct thread, elem);
+    thread_unblock (wait);
+    if(wait->priority > curr->priority)
+    {
+      thread_yield();
+    }
+  }
+    
   sema->value++;
   intr_set_level (old_level);
 }
@@ -184,6 +197,9 @@ lock_init (struct lock *lock)
 
   lock->holder = NULL;
   sema_init (&lock->semaphore, 1);
+
+  //lab3
+  lock->priority = -1;
 }
 
 /* Acquires LOCK, sleeping until it becomes available if
@@ -202,14 +218,37 @@ lock_acquire (struct lock *lock)
   ASSERT (!lock_held_by_current_thread (lock));
 
   //my modification lab3
-  if(lock->holder != NULL && lock->holder->priority < current_thread()->priority)
+  struct thread *holder = lock->holder;
+  struct thread *curr = thread_current();
+  struct lock *other_lock = lock;
+  curr->blocked_lock = lock;
+
+  while(holder != NULL && holder->priority < curr->priority)
   {
-    lock->holder->old_priority = lock->handle->priority;
-    lock->holder->priority = current_thread()->priority;
+    if(holder->old_priority < 0)
+      holder->old_priority = holder->priority;
+    
+    holder->priority = curr->priority;
+    list_sort(&ready_list, is_higher_priority, NULL);
+
+    if(other_lock != NULL && curr->priority > other_lock->priority)
+    {
+      other_lock->priority = curr->priority;
+      list_sort(&holder->locks, is_higher_priority, NULL);
+    }
+
+    if(holder->blocked_lock != NULL)
+    {
+      holder = holder->blocked_lock->holder;
+      other_lock = holder->blocked_lock;
+    }
   }
-  //end of my mod
+
   sema_down (&lock->semaphore);
   lock->holder = thread_current ();
+  //lab3
+  curr->blocked_lock = NULL;
+  list_insert_ordered(&curr->locks, &lock->holder_elem, is_higher_priority, NULL);  
 }
 
 /* Tries to acquires LOCK and returns true if successful or false
@@ -244,12 +283,36 @@ lock_release (struct lock *lock)
   ASSERT (lock_held_by_current_thread (lock));
 
   //my mod lab3
-  if(current_thread()->old_priority > 0)
+  struct thread *curr = thread_current();
+  struct lock *max_lock;
+  struct thread *max_thread;
+
+  list_remove(&lock->holder_elem);
+
+  if(list_empty(curr->locks))
   {
-    current_thread()->priority = current_thread()->old_priority;
-    current_thread()->old_priority = -1;
+    curr->priority = curr->old_priority;
+    curr->old_priority = -1;
   }
-  //end of my mod
+  else
+  {
+    max_lock = list_entry (list_begin(&curr->locks), struct lock, holder_elem);
+    if(max_lock->priority > curr->priority)
+    {
+      curr->priority = max_lock->priority;
+    }
+    else
+    {
+      curr->priority = curr->old_priority;
+      curr->old_priority = -1;
+    }
+  }
+  
+  max_thread = list_entry(list_begin (&ready_list), struct thread, elem);
+  if(max_thread->priority > curr->priority)
+    thread_yield();
+
+  lock->priority = -1;
   lock->holder = NULL;
   sema_up (&lock->semaphore);
 }

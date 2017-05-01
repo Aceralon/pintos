@@ -103,9 +103,10 @@ struct thread
 
     /*My modification*/
     int64_t ticks_toblock;              /*ticks that the thread should be blocked*/
+    //lab3
     int old_priority;
-    struct list locks;
-    struct lock *current_lock;
+    struct list locks;                  /*list of locks that a thread acquired*/
+    struct lock *blocked_lock;
   };
 
 /* If false (default), use round-robin scheduler.
