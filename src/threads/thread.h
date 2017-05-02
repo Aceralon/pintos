@@ -149,6 +149,7 @@ void blocked_thread_check(struct thread *t, void *aux UNUSED);
 
 bool is_higher_priority(const struct list_elem *a, const struct list_elem *b, void *aux UNUSED);
 
+bool lock_is_higher_priority(const struct list_elem *a, const struct list_elem *b, void *aux UNUSED);
 void check_priority(struct thread *th);
 
 #endif /* threads/thread.h */
