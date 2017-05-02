@@ -237,24 +237,6 @@ lock_acquire (struct lock *lock)
     }
     else
       break;
-
-    /*if(holder->old_priority < 0)
-      holder->old_priority = holder->priority;//done
-    
-    holder->priority = curr->priority;//done
-    list_sort(&ready_list, is_higher_priority, NULL);//done
-
-    if(other_lock != NULL && curr->priority > other_lock->priority)
-    {
-      other_lock->priority = curr->priority;//done
-      list_sort(&holder->locks, is_higher_priority, NULL);//done
-    }
-
-    if(holder->blocked_lock != NULL)
-    {
-      holder = holder->blocked_lock->holder;
-      other_lock = holder->blocked_lock;
-    }*/
   }
 
   sema_down (&lock->semaphore);
@@ -262,7 +244,6 @@ lock_acquire (struct lock *lock)
   //lab3
   curr->blocked_lock = NULL;
   list_push_back (&curr->locks, &lock->holder_elem);
-  //list_insert_ordered(&curr->locks, &lock->holder_elem, is_higher_priority, NULL);  
 }
 
 /* Tries to acquires LOCK and returns true if successful or false

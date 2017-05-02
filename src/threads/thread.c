@@ -491,7 +491,7 @@ init_thread (struct thread *t, const char *name, int priority)
   //lab3
   t->old_priority = -1;
   t->blocked_lock = NULL;
-  
+  list_init(t->locks);
 }
 
 /* Allocates a SIZE-byte frame at the top of thread T's stack and
@@ -631,7 +631,7 @@ is_higher_priority(const struct list_elem *a, const struct list_elem *b, void *a
 bool
 lock_is_higher_priority(const struct list_elem *a, const struct list_elem *b, void *aux UNUSED)
 {
-  return list_entry (a, struct lock, a->holder_elem)->priority > list_entry (b, struct lock, b->holder_elem)->priority; 
+  return list_entry (a, struct lock, holder_elem)->priority > list_entry (b, struct lock, holder_elem)->priority; 
 }
 
 void
