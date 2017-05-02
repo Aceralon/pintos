@@ -212,17 +212,17 @@ lock_acquire (struct lock *lock)
   //my modification lab3
   struct thread *lock_holder = lock->holder;
   struct thread *curr = thread_current();
-  struct lock *hold_lock = lock;
+  struct lock *wait_lock = lock;
 
   if(lock_holder != NULL)
   {
     curr->blocked_lock = lock;
-    while(hold_lock != NULL && hold_lock->priority < curr->priority)
+    while(wait_lock != NULL && wait_lock->priority < curr->priority)
     {
-      hold_lock->priority = curr->priority;
-      lock_holder = hold_lock->holder;
+      wait_lock->priority = curr->priority;
+      lock_holder = wait_lock->holder;
       check_priority(lock_holder);
-      hold_lock = lock_holder->blocked_lock;
+      wait_lock = lock_holder->blocked_lock;
     }
     //thread_yield();
   }
@@ -266,10 +266,8 @@ lock_release (struct lock *lock)
   ASSERT (lock_held_by_current_thread (lock));
 
   //my mod lab3
-  struct thread *curr = thread_current();
-
   list_remove(&lock->holder_elem);
-  check_priority(curr);
+  check_priority(thread_current());
 
   lock->priority = -1;
   lock->holder = NULL;
