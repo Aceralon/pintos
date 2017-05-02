@@ -355,7 +355,15 @@ thread_set_priority (int new_priority)
   //lab3
   struct thread *curr = thread_current();
 
-  curr->priority = new_priority;
+  //curr->priority = new_priority;
+  if(curr->old_priority > 0)
+  {
+    curr->old_priority = curr->priority;
+  }
+  else
+  {
+    curr->priority = new_priority;
+  }
   check_priority(curr);
 
   struct thread *max = list_entry(list_begin (&ready_list), struct thread, elem);
