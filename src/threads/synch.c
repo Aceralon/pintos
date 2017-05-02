@@ -70,8 +70,8 @@ sema_down (struct semaphore *sema)
     {
       //my modification lab3
 
-      //list_push_back (&sema->waiters, &thread_current ()->elem);
-      list_insert_ordered(&sema->waiters, &thread_current ()->elem, is_higher_priority, NULL);
+      list_push_back (&sema->waiters, &thread_current ()->elem);
+      //list_insert_ordered(&sema->waiters, &thread_current ()->elem, is_higher_priority, NULL);
       //end of my modification
 
       thread_block ();
@@ -126,6 +126,7 @@ sema_up (struct semaphore *sema)
   
   if (!list_empty (&sema->waiters))
   {
+    list_sort(&sema->waiters, is_higher_priority, NULL);
     wait = list_entry (list_pop_front (&sema->waiters), struct thread, elem);
     thread_unblock (wait);
     if(wait->priority > curr->priority)
@@ -260,7 +261,8 @@ lock_acquire (struct lock *lock)
   lock->holder = thread_current ();
   //lab3
   curr->blocked_lock = NULL;
-  list_insert_ordered(&curr->locks, &lock->holder_elem, is_higher_priority, NULL);  
+  list_push_back (&curr->locks, &lock->holder_elem);
+  //list_insert_ordered(&curr->locks, &lock->holder_elem, is_higher_priority, NULL);  
 }
 
 /* Tries to acquires LOCK and returns true if successful or false
@@ -296,7 +298,6 @@ lock_release (struct lock *lock)
 
   //my mod lab3
   struct thread *curr = thread_current();
-  struct lock *max_lock;
 
   list_remove(&lock->holder_elem);
   check_priority(curr);

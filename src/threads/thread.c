@@ -355,12 +355,12 @@ thread_set_priority (int new_priority)
   //lab3
   struct thread *curr = thread_current();
 
-  curr->old_priority = new_priority;
+  curr->priority = new_priority;
   check_priority(curr);
 
-/*  struct thread *max = list_entry(list_begin (&ready_list), struct thread, elem);
+  struct thread *max = list_entry(list_begin (&ready_list), struct thread, elem);
   if(max->priority > curr->priority)
-    thread_yield();*/
+    thread_yield();
 }
 
 /* Returns the current thread's priority. */
@@ -635,24 +635,38 @@ check_priority(struct thread *th)
   if(!list_empty(&th->locks))
   {
     list_sort(&th->locks, is_higher_priority, NULL);
-    max_priority = list_entry (list_begin(&th->locks), struct lock, holder_elem)->priority;
-  }
-  else if(th->old_priority != -1)
-  {
-    th->priority = th->old_priority;
-    th->old_priority = -1;
-  }
-
-  if(max_priority > th->priority)
-  {
-    if(th->old_priority < 0)
+    max_priority = list_entry (list_begin(&th->locks), struct lock, list_begin(&th->locks)->holder_elem)->priority;
+    if(th->old_priority > 0) //donated
     {
-      th->old_priority = th->priority;
+      if(max > th->old_priority)
+      {
+        th->priority = max_priority;
+      }
+      else
+      {
+        th->priority = th->old_priority;
+        th->old_priority = -1;
+      }
     }
-    th->priority = max_priority;
+    else //not donated
+    {
+      if(th->priority < max_priority)
+      {
+        th->old_priority = th->priority;
+        th->priority = max_priority;
+      }
+    }
   }
+  else //no locks
+  {
+    if(th->old_priority > 0)
+    {
+      th->priority = th->old_priority;
+      th->old_priority = -1;
+    }
+  }
+  
 
-  /*list_sort(&ready_list, is_higher_priority, NULL);*/
-  thread_yield();
+  list_sort(&ready_list, is_higher_priority, NULL);
 
 }
