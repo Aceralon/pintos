@@ -125,10 +125,6 @@ sema_up (struct semaphore *sema)
     list_sort(&sema->waiters, is_higher_priority, NULL);
     wait = list_entry (list_pop_front (&sema->waiters), struct thread, elem);
     thread_unblock (wait);
-    if(wait->priority > curr->priority)
-    {
-      thread_yield();
-    }
   }
     
   sema->value++;
@@ -219,24 +215,18 @@ lock_acquire (struct lock *lock)
   struct thread *curr = thread_current();
   struct lock *hold_lock = lock;
 
-  curr->blocked_lock = lock;
-
-  while(lock_holder != NULL && hold_lock->priority < curr->priority)
+  if(lock_holder != NULL)
   {
-    hold_lock->priority = curr->priority;
-
-    check_priority(lock_holder);
-
-    if(lock_holder->blocked_lock != NULL)
+    curr->blocked_lock = lock;
+    while(hold_lock != NULL && hold_lock->priority < curr->priority)
     {
-      hold_lock = lock_holder->blocked_lock;
+      hold_lock->priority = curr->priority;
       lock_holder = hold_lock->holder;
+      check_priority(lock_holder);
+      hold_lock = lock_holder->blocked_lock;
     }
-    else
-      break;
+    thread_yield();
   }
-  
-  thread_yield();
 
   sema_down (&lock->semaphore);
   lock->holder = curr;
@@ -281,12 +271,11 @@ lock_release (struct lock *lock)
 
   list_remove(&lock->holder_elem);
   check_priority(curr);
-  
-  thread_yield();
 
   lock->priority = -1;
   lock->holder = NULL;
   sema_up (&lock->semaphore);
+  thread_yield();
 }
 
 /* Returns true if the current thread holds LOCK, false
