@@ -125,6 +125,10 @@ sema_up (struct semaphore *sema)
     list_sort(&sema->waiters, is_higher_priority, NULL);
     wait = list_entry (list_pop_front (&sema->waiters), struct thread, elem);
     thread_unblock (wait);
+    /*if(wait->priority > curr->priority)
+    {
+      thread_yield();
+    }*/
   }
     
   sema->value++;
@@ -225,7 +229,7 @@ lock_acquire (struct lock *lock)
       check_priority(lock_holder);
       hold_lock = lock_holder->blocked_lock;
     }
-    thread_yield();
+    //thread_yield();
   }
 
   sema_down (&lock->semaphore);

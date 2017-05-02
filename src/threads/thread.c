@@ -51,7 +51,7 @@ static long long kernel_ticks;  /* # of timer ticks in kernel threads. */
 static long long user_ticks;    /* # of timer ticks in user programs. */
 
 /* Scheduling. */
-#define TIME_SLICE 10            /* # of timer ticks to give each thread. */
+#define TIME_SLICE 4            /* # of timer ticks to give each thread. */
 static unsigned thread_ticks;   /* # of timer ticks since last yield. */
 
 /* If false (default), use round-robin scheduler.
@@ -355,15 +355,6 @@ thread_set_priority (int new_priority)
   //lab3
   struct thread *curr = thread_current();
 
-  //curr->priority = new_priority;
-  /*if(curr->old_priority > 0)
-  {
-    curr->old_priority = curr->priority;
-  }
-  else
-  {
-    curr->priority = new_priority;
-  }*/
   curr->old_priority = new_priority;
   check_priority(curr);
 
@@ -655,35 +646,10 @@ check_priority(struct thread *th)
       th->priority = max_priority;
     else
       th->priority = th->old_priority;
-    /*if(th->old_priority > 0) //donated
-    {
-      if(max_priority > th->old_priority)
-      {
-        th->priority = max_priority;
-      }
-      else
-      {
-        th->priority = th->old_priority;
-        th->old_priority = -1;
-      }
-    }
-    else //not donated
-    {
-      if(th->priority < max_priority)
-      {
-        th->old_priority = th->priority;
-        th->priority = max_priority;
-      }
-    }*/
   }
   else //no locks
   {
     th->priority = th->old_priority;
-    /*if(th->old_priority > 0)
-    {
-      th->priority = th->old_priority;
-      th->old_priority = -1;
-    }*/
   }
 
   list_sort(&ready_list, is_higher_priority, NULL);
