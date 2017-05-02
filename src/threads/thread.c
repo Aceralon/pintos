@@ -634,7 +634,7 @@ lock_is_higher_priority(const struct list_elem *a, const struct list_elem *b, vo
   return list_entry (a, struct lock, holder_elem)->priority > list_entry (b, struct lock, holder_elem)->priority; 
 }
 
-void
+void //seems well to me
 check_priority(struct thread *th)
 {
   int max_priority = -1;
@@ -670,9 +670,7 @@ check_priority(struct thread *th)
       th->priority = th->old_priority;
       th->old_priority = -1;
     }
-  }
-  
+  }  
 
   list_sort(&ready_list, is_higher_priority, NULL);
-
 }

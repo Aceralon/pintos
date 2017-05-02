@@ -68,10 +68,7 @@ sema_down (struct semaphore *sema)
   old_level = intr_disable ();
   while (sema->value == 0) 
     {
-      //my modification lab3
-
       list_push_back (&sema->waiters, &thread_current ()->elem);
-      //end of my modification
 
       thread_block ();
     }
@@ -220,27 +217,29 @@ lock_acquire (struct lock *lock)
   //my modification lab3
   struct thread *lock_holder = lock->holder;
   struct thread *curr = thread_current();
-  struct lock *other_lock = lock;
+  struct lock *hold_lock = lock;
+
   curr->blocked_lock = lock;
 
-  while(lock_holder != NULL && other_lock->priority < curr->priority)
+  while(lock_holder != NULL && hold_lock->priority < curr->priority)
   {
-    other_lock->priority = curr->priority;
+    hold_lock->priority = curr->priority;
 
-    check_priority(other_lock->holder);
+    check_priority(lock_holder);
 
     if(lock_holder->blocked_lock != NULL)
     {
-      lock_holder = lock_holder->blocked_lock->holder;
-      other_lock = lock_holder->blocked_lock;
+      hold_lock = lock_holder->blocked_lock;
+      lock_holder = hold_lock->holder;
     }
     else
       break;
   }
+  
+  thread_yield();
 
   sema_down (&lock->semaphore);
-  lock->holder = thread_current ();
-  thread_yield();
+  lock->holder = curr;
   //lab3
   curr->blocked_lock = NULL;
   list_push_back (&curr->locks, &lock->holder_elem);
