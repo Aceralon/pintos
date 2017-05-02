@@ -71,7 +71,6 @@ sema_down (struct semaphore *sema)
       //my modification lab3
 
       list_push_back (&sema->waiters, &thread_current ()->elem);
-      //list_insert_ordered(&sema->waiters, &thread_current ()->elem, is_higher_priority, NULL);
       //end of my modification
 
       thread_block ();
@@ -241,6 +240,7 @@ lock_acquire (struct lock *lock)
 
   sema_down (&lock->semaphore);
   lock->holder = thread_current ();
+  thread_yield();
   //lab3
   curr->blocked_lock = NULL;
   list_push_back (&curr->locks, &lock->holder_elem);
@@ -283,26 +283,7 @@ lock_release (struct lock *lock)
   list_remove(&lock->holder_elem);
   check_priority(curr);
   
-  /*if(list_empty(&curr->locks))
-  {
-    curr->priority = curr->old_priority;
-    curr->old_priority = -1;
-  }
-  else
-  {
-    max_lock = list_entry (list_begin(&curr->locks), struct lock, holder_elem);
-    if(max_lock->priority > curr->priority)
-    {
-      curr->priority = max_lock->priority;
-    }
-    else
-    {
-      curr->priority = curr->old_priority;
-      curr->old_priority = -1;
-    }
-  }*/
-  
-  /*thread_yield();*/
+  thread_yield();
 
   lock->priority = -1;
   lock->holder = NULL;

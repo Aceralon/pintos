@@ -491,7 +491,7 @@ init_thread (struct thread *t, const char *name, int priority)
   //lab3
   t->old_priority = -1;
   t->blocked_lock = NULL;
-  list_init(t->locks);
+  list_init(&t->locks);
 }
 
 /* Allocates a SIZE-byte frame at the top of thread T's stack and
