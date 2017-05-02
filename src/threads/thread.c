@@ -51,7 +51,7 @@ static long long kernel_ticks;  /* # of timer ticks in kernel threads. */
 static long long user_ticks;    /* # of timer ticks in user programs. */
 
 /* Scheduling. */
-#define TIME_SLICE 4            /* # of timer ticks to give each thread. */
+#define TIME_SLICE 10            /* # of timer ticks to give each thread. */
 static unsigned thread_ticks;   /* # of timer ticks since last yield. */
 
 /* If false (default), use round-robin scheduler.
@@ -356,14 +356,15 @@ thread_set_priority (int new_priority)
   struct thread *curr = thread_current();
 
   //curr->priority = new_priority;
-  if(curr->old_priority > 0)
+  /*if(curr->old_priority > 0)
   {
     curr->old_priority = curr->priority;
   }
   else
   {
     curr->priority = new_priority;
-  }
+  }*/
+  curr->old_priority = new_priority;
   check_priority(curr);
 
   struct thread *max = list_entry(list_begin (&ready_list), struct thread, elem);
@@ -497,7 +498,7 @@ init_thread (struct thread *t, const char *name, int priority)
   //list_push_back (&all_list, &t->allelem);
   list_insert_ordered (&all_list, &t->allelem, is_higher_priority, NULL);
   //lab3
-  t->old_priority = -1;
+  t->old_priority = priority;
   t->blocked_lock = NULL;
   list_init(&t->locks);
 }
@@ -650,7 +651,11 @@ check_priority(struct thread *th)
   {
     list_sort(&th->locks, lock_is_higher_priority, NULL);
     max_priority = list_entry (list_begin(&th->locks), struct lock, holder_elem)->priority;
-    if(th->old_priority > 0) //donated
+    if(max_priority > th->old_priority)
+      th->priority = max_priority;
+    else
+      th->priority = th->old_priority;
+    /*if(th->old_priority > 0) //donated
     {
       if(max_priority > th->old_priority)
       {
@@ -669,16 +674,17 @@ check_priority(struct thread *th)
         th->old_priority = th->priority;
         th->priority = max_priority;
       }
-    }
+    }*/
   }
   else //no locks
   {
-    if(th->old_priority > 0)
+    th->priority = th->old_priority;
+    /*if(th->old_priority > 0)
     {
       th->priority = th->old_priority;
       th->old_priority = -1;
-    }
-  }  
+    }*/
+  }
 
   list_sort(&ready_list, is_higher_priority, NULL);
 }
