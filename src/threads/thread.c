@@ -352,10 +352,14 @@ thread_foreach (thread_action_func *func, void *aux)
 void
 thread_set_priority (int new_priority) 
 {
-  thread_current ()->priority = new_priority;
+  //lab3
+  struct thread *curr = thread_current();
+
+  curr->old_priority = new_priority;
+  check_priority(curr);
 
   struct thread *max = list_entry(list_begin (&ready_list), struct thread, elem);
-  if(max->priority > new_priority)
+  if(max->priority > curr->priority)
     thread_yield();
 }
 
@@ -484,6 +488,10 @@ init_thread (struct thread *t, const char *name, int priority)
   t->magic = THREAD_MAGIC;
   //list_push_back (&all_list, &t->allelem);
   list_insert_ordered (&all_list, &t->allelem, is_higher_priority, NULL);
+  //lab3
+  t->old_priority = priority;
+  t->blocked_lock = NULL;
+  list_init(&t->locks);
 }
 
 /* Allocates a SIZE-byte frame at the top of thread T's stack and
@@ -621,7 +629,28 @@ is_higher_priority(const struct list_elem *a, const struct list_elem *b, void *a
 }
 
 bool
-is_lower_priority(const struct list_elem *a, const struct list_elem *b, void *aux UNUSED)
+lock_is_higher_priority(const struct list_elem *a, const struct list_elem *b, void *aux UNUSED)
 {
-  return list_entry (a, struct thread, elem)->priority < list_entry (b, struct thread, elem)->priority; 
+  return list_entry (a, struct lock, holder_elem)->priority > list_entry (b, struct lock, holder_elem)->priority; 
+}
+
+void //seems well to me
+check_priority(struct thread *th)
+{
+  int max_priority = -1;
+  if(!list_empty(&th->locks))
+  {
+    list_sort(&th->locks, lock_is_higher_priority, NULL);
+    max_priority = list_entry (list_begin(&th->locks), struct lock, holder_elem)->priority;
+    if(max_priority > th->old_priority)
+      th->priority = max_priority;
+    else
+      th->priority = th->old_priority;
+  }
+  else //no locks
+  {
+    th->priority = th->old_priority;
+  }
+
+  list_sort(&ready_list, is_higher_priority, NULL);
 }

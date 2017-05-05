@@ -113,11 +113,22 @@ sema_up (struct semaphore *sema)
   ASSERT (sema != NULL);
 
   old_level = intr_disable ();
-  if (!list_empty (&sema->waiters)) 
+  /*if (!list_empty (&sema->waiters)) 
     thread_unblock (list_entry (list_pop_front (&sema->waiters),
-                                struct thread, elem));
+                                struct thread, elem));*/
+  struct thread *wait;
+  struct thread *curr = thread_current();
+  
+  if (!list_empty (&sema->waiters))
+  {
+    list_sort(&sema->waiters, is_higher_priority, NULL);
+    wait = list_entry (list_pop_front (&sema->waiters), struct thread, elem);
+    thread_unblock (wait);
+  }
+    
   sema->value++;
   intr_set_level (old_level);
+  thread_yield();
 }
 
 static void sema_test_helper (void *sema_);
@@ -179,6 +190,8 @@ lock_init (struct lock *lock)
 
   lock->holder = NULL;
   sema_init (&lock->semaphore, 1);
+  //lab3
+  lock->priority = -1;
 }
 
 /* Acquires LOCK, sleeping until it becomes available if
@@ -196,8 +209,29 @@ lock_acquire (struct lock *lock)
   ASSERT (!intr_context ());
   ASSERT (!lock_held_by_current_thread (lock));
 
+  //my modification lab3
+  struct thread *lock_holder = lock->holder;
+  struct thread *curr = thread_current();
+  struct lock *wait_lock = lock;
+
+  if(lock_holder != NULL)
+  {
+    curr->blocked_lock = lock;
+    while(wait_lock != NULL && wait_lock->priority < curr->priority)
+    {
+      wait_lock->priority = curr->priority;
+      lock_holder = wait_lock->holder;
+      check_priority(lock_holder);
+      wait_lock = lock_holder->blocked_lock;
+    }
+    //thread_yield();
+  }
+
   sema_down (&lock->semaphore);
-  lock->holder = thread_current ();
+  lock->holder = curr;
+  //lab3
+  curr->blocked_lock = NULL;
+  list_push_back (&curr->locks, &lock->holder_elem);
 }
 
 /* Tries to acquires LOCK and returns true if successful or false
@@ -231,8 +265,14 @@ lock_release (struct lock *lock)
   ASSERT (lock != NULL);
   ASSERT (lock_held_by_current_thread (lock));
 
+  //my mod lab3
+  list_remove(&lock->holder_elem);
+  check_priority(thread_current());
+
+  lock->priority = -1;
   lock->holder = NULL;
   sema_up (&lock->semaphore);
+  //thread_yield();
 }
 
 /* Returns true if the current thread holds LOCK, false

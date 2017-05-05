@@ -88,7 +88,6 @@ struct thread
     char name[16];                      /* Name (for debugging purposes). */
     uint8_t *stack;                     /* Saved stack pointer. */
     int priority;                       /* Priority. */
-    int64_t ticks_toblock;              /*ticks that the thread should be blocked*/
     struct list_elem allelem;           /* List element for all threads list. */
 
     /* Shared between thread.c and synch.c. */
@@ -101,6 +100,13 @@ struct thread
 
     /* Owned by thread.c. */
     unsigned magic;                     /* Detects stack overflow. */
+
+    /*My modification*/
+    int64_t ticks_toblock;              /*ticks that the thread should be blocked*/
+    //lab3
+    int old_priority;
+    struct list locks;                  /*list of locks that a thread acquired*/
+    struct lock *blocked_lock;
   };
 
 /* If false (default), use round-robin scheduler.
@@ -142,6 +148,8 @@ int thread_get_load_avg (void);
 void blocked_thread_check(struct thread *t, void *aux UNUSED);
 
 bool is_higher_priority(const struct list_elem *a, const struct list_elem *b, void *aux UNUSED);
-bool is_lower_priority(const struct list_elem *a, const struct list_elem *b, void *aux UNUSED);
+
+bool lock_is_higher_priority(const struct list_elem *a, const struct list_elem *b, void *aux UNUSED);
+void check_priority(struct thread *th);
 
 #endif /* threads/thread.h */
