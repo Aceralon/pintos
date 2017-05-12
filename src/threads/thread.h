@@ -151,6 +151,7 @@ bool is_higher_priority(const struct list_elem *a, const struct list_elem *b, vo
 
 bool lock_is_higher_priority(const struct list_elem *a, const struct list_elem *b, void *aux UNUSED);
 void check_priority(struct thread *th);
+//lab4
 bool sema_is_higher_priority(const struct list_elem *a, const struct list_elem *b, void *aux UNUSED);
 
 #endif /* threads/thread.h */
