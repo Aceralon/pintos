@@ -145,13 +145,11 @@ void thread_set_nice (int);
 int thread_get_recent_cpu (void);
 int thread_get_load_avg (void);
 
-void blocked_thread_check(struct thread *t, void *aux UNUSED);
+void blocked_thread_check(struct thread *t, void *aux);
 
-bool is_higher_priority(const struct list_elem *a, const struct list_elem *b, void *aux UNUSED);
+bool is_higher_priority(const struct list_elem *a, const struct list_elem *b, void *aux);
 
-bool lock_is_higher_priority(const struct list_elem *a, const struct list_elem *b, void *aux UNUSED);
+bool lock_is_higher_priority(const struct list_elem *a, const struct list_elem *b, void *aux);
 void check_priority(struct thread *th);
-//lab4
-bool sema_is_higher_priority(const struct list_elem *a, const struct list_elem *b, void *aux UNUSED);
 
 #endif /* threads/thread.h */

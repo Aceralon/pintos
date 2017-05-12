@@ -393,3 +393,9 @@ cond_broadcast (struct condition *cond, struct lock *lock)
   while (!list_empty (&cond->waiters))
     cond_signal (cond, lock);
 }
+
+bool
+sema_is_higher_priority(const struct list_elem *a, const struct list_elem *b, void *aux UNUSED)
+{
+  return list_entry (a, struct semaphore, sema_elem)->sema_priority > list_entry (b, struct semaphore, sema_elem)->sema_priority;
+}
