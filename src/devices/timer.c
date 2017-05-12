@@ -192,7 +192,7 @@ timer_interrupt (struct intr_frame *args UNUSED)
     FP_ADD_MIX(thread_current()->recent_cpu, 1);
     if(cnt%4 == 0)
       thread_foreach(renew_priority, NULL);
-    if(cnt%100 == 0)
+    if(cnt >= 100)
     {
       thread_foreach(renew_load_avg, NULL);
       thread_foreach(renew_recent_cpu, NULL);

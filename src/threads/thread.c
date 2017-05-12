@@ -426,7 +426,7 @@ renew_load_avg(void)
 {
   int ready_threads;
   ready_threads = list_size(&ready_list) + thread_current() == idle_thread ? 0 : 1;
-  load_avg = FP_MUL(FP_DIV_MIX(INT_FP(59), 60), load_avg) + FP_MUL_MIX(FP_DIV_MIX(INT_FP(1), 60), ready_threads);
+  load_avg = FP_MUL(FP_DIV_MIX(INT_FP(59), 60), load_avg) + FP_DIV_MIX(INT_FP(ready_threads), 60);
 }
 
 /* Idle thread.  Executes when no other thread is ready to run.
