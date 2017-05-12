@@ -209,11 +209,12 @@ lock_acquire (struct lock *lock)
   ASSERT (!intr_context ());
   ASSERT (!lock_held_by_current_thread (lock));
 
+  struct thread *curr = thread_current();
+
   if(!thread_mlfqs)
   {
     //my modification lab3
     struct thread *lock_holder = lock->holder;
-    struct thread *curr = thread_current();
     struct lock *wait_lock = lock;
 
     if(lock_holder != NULL)
@@ -390,5 +391,5 @@ cond_broadcast (struct condition *cond, struct lock *lock)
 bool
 sema_is_higher_priority(const struct list_elem *a, const struct list_elem *b, void *aux UNUSED)
 {
-  return list_entry (a, struct semaphore_elem, elem)->semaphore->sema_priority > list_entry (b, struct semaphore_elem, elem)->semaphore->sema_priority;
+  return list_entry (a, struct semaphore_elem, elem)->semaphore.sema_priority > list_entry (b, struct semaphore_elem, elem)->semaphore.sema_priority;
 }
