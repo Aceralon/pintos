@@ -345,7 +345,7 @@ cond_wait (struct condition *cond, struct lock *lock)
   list_push_back(&cond->waiters, &sema.sema_elem);
 
   //lab4
-  waiter.semaphore.sema_priority = thread_current()->priority;
+  sema.sema_priority = thread_current()->priority;
 
   lock_release (lock);
   //sema_down (&waiter.semaphore);
@@ -373,7 +373,7 @@ cond_signal (struct condition *cond, struct lock *lock UNUSED)
     list_sort(&cond->waiters, sema_is_higher_priority, NULL);
     // sema_up (&list_entry (list_pop_front (&cond->waiters),
     //                       struct semaphore_elem, elem)->semaphore);
-    sema_up (&list_entry (list_pop_front (&cond->waiters),
+    sema_up (list_entry (list_pop_front (&cond->waiters),
                       struct semaphore, sema_elem));
   }
 }
