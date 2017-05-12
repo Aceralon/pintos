@@ -1,6 +1,6 @@
-#ifndef THREADS_THREAD_H
-#define THREADS_THREAD_H
-
+#(fixed_t)ifndef THREAD_THREA(D_H)
+#define THREAD_THREAD_
+#define FP_DIV(A,B) D_H#(fixed_t)ifndef THREAD_THREA(D_H)
 #include <debug.h>
 #include <list.h>
 #include <stdint.h>
@@ -23,6 +23,20 @@ typedef int tid_t;
 #define PRI_MIN 0                       /* Lowest priority. */
 #define PRI_DEFAULT 31                  /* Default priority. */
 #define PRI_MAX 63                      /* Highest priority. */
+
+//define the float point calculation need
+typedef int fixed_t
+#define FP_SHIFT_AMOUNT 16
+#define INT_FP(A) ((fixed_t)(A << FP_SHIFT_AMOUNT))
+#define FP_INT(A) ((int)(A >> FP_SHIFT_AMOUNT))
+#define FP_ADD(A,B) (A + B)
+#define FP_ADD_MIX(A,N) (A + (B << FP_SHIFT_AMOUNT))
+#define FP_SUB(A,B) (A - B)
+#define FP_SUB_MIX(A,N) (A - (B << FP_SHIFT_AMOUNT))
+#define FP_MUL(A,B) ((fixed_t)((((int64_t)A) * B) >> FP_SHIFT_AMOUNT))
+#define FP_MUL_MIX(A,N) (A * N)
+#define FP_DIV(A,B) ((fixed_t)((((int64_t)A) << FP_SHIFT_AMOUNT) / B))
+#define FP_DIV_MIX(A,N) (A / N)
 
 /* A kernel thread or user process.
 
@@ -107,6 +121,9 @@ struct thread
     int old_priority;
     struct list locks;                  /*list of locks that a thread acquired*/
     struct lock *blocked_lock;
+    //lab4
+    int nice;
+    fixed_t recent_cpu;
   };
 
 /* If false (default), use round-robin scheduler.
@@ -140,10 +157,16 @@ void thread_foreach (thread_action_func *, void *);
 int thread_get_priority (void);
 void thread_set_priority (int);
 
+//lab4
 int thread_get_nice (void);
 void thread_set_nice (int);
+void renew_priority(struct thread *t)
+
 int thread_get_recent_cpu (void);
+void renew_recent_cpu(struct thread *t)
+
 int thread_get_load_avg (void);
+void renew_load_avg(void);
 
 void blocked_thread_check(struct thread *t, void *aux);
 
