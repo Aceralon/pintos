@@ -398,7 +398,7 @@ renew_priority(struct thread *t)
   if(t->priority > PRI_MAX)
     t->priority = PRI_MAX;
   else if(t->priority < PRI_MIN)
-    t->priority = PRI_MIN
+    t->priority = PRI_MIN;
 }
 
 /* Returns 100 times the current thread's recent_cpu value. */
@@ -411,7 +411,7 @@ thread_get_recent_cpu (void)
 void
 renew_recent_cpu(struct thread *t)
 {
-  t->recent_cpu = FP_MUL(FP_DIV(FP_MUL_MIX(load_avg, 2), FP_ADD_MIX(FP_MUL_MIX(load_avg, 2), 1)), recent_cpu) + INT_FP(t->nice);
+  t->recent_cpu = FP_MUL(FP_DIV(FP_MUL_MIX(load_avg, 2), FP_ADD_MIX(FP_MUL_MIX(load_avg, 2), 1)), t->recent_cpu) + INT_FP(t->nice);
 }
 
 /* Returns 100 times the system load average. */
@@ -426,7 +426,7 @@ renew_load_avg(void)
 {
   int ready_threads;
   ready_threads = list_size(&ready_list) + thread_current() == idle_thread ? 0 : 1;
-  load_avg = FP_MUL(FP_DIV_MIX(INT_FP(59), 60), load_avg) + FP_MUL_MIX(FP_DIV_MIX(INT_FP(1), 60), ready_threads)
+  load_avg = FP_MUL(FP_DIV_MIX(INT_FP(59), 60), load_avg) + FP_MUL_MIX(FP_DIV_MIX(INT_FP(1), 60), ready_threads);
 }
 
 /* Idle thread.  Executes when no other thread is ready to run.
