@@ -12,6 +12,7 @@ struct semaphore
 
     //lab4
     int sema_priority;
+    struct list_elem sema_elem;
   };
 
 void sema_init (struct semaphore *, unsigned value);

@@ -659,5 +659,5 @@ check_priority(struct thread *th)
 bool
 sema_is_higher_priority(const struct list_elem *a, const struct list_elem *b, void *aux UNUSED)
 {
-  return list_entry (a, struct semaphore_elem, elem)->semaphore.sema_priority > list_entry (b, struct semaphore_elem, elem)->semaphore.sema_priority;
+  return list_entry (a, struct semaphore, sema_elem)->sema_priority > list_entry (b, struct semaphore, sema_elem)->sema_priority;
 }
