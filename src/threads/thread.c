@@ -223,7 +223,11 @@ thread_create (const char *name, int priority,
 
   //lab4
   if(thread_mlfqs)
+  { 
+    t->nice = thread_current()->nice;
+    t->recnet_cpu = thread_current()->recnet_cpu;
     renew_priority(t, NULL);
+  }    
 
   if(thread_current()->priority < t->priority)
     thread_yield();
@@ -535,10 +539,6 @@ init_thread (struct thread *t, const char *name, int priority)
   t->old_priority = priority;
   t->blocked_lock = NULL;
   list_init(&t->locks);
-
-  //lab4
-  t->nice = thread_current()->nice;
-  t->recnet_cpu = thread_current()->recnet_cpu;
 }
 
 /* Allocates a SIZE-byte frame at the top of thread T's stack and
