@@ -104,8 +104,7 @@ thread_init (void)
 
   //lab4
   initial_thread->nice = 0;
-  initial_thread->recnet_cpu = 0;
-  load_avg = 0;
+  initial_thread->recnet_cpu = INT_FP(0);
 }
 
 /* Starts preemptive thread scheduling by enabling interrupts.
@@ -123,6 +122,9 @@ thread_start (void)
 
   /* Wait for the idle thread to initialize idle_thread. */
   sema_down (&idle_started);
+
+  //lab4
+  load_avg = INT_FP(0);
 }
 
 /* Called by the timer interrupt handler at each timer tick.
@@ -145,9 +147,6 @@ thread_tick (void)
   /* Enforce preemption. */
   if (++thread_ticks >= TIME_SLICE)
     intr_yield_on_return ();
-
-  if(thread_mlfqs && thread_current() != idle_thread)
-    thread_current()->recnet_cpu = FP_ADD_MIX(thread_current()->recnet_cpu, 1);
 }
 
 /* Prints thread statistics. */
@@ -223,8 +222,10 @@ thread_create (const char *name, int priority,
   //lab4
   if(thread_mlfqs)
   { 
-    t->nice = thread_current()->nice;
-    t->recnet_cpu = thread_current()->recnet_cpu;
+    // t->nice = thread_current()->nice;
+    // t->recnet_cpu = thread_current()->recnet_cpu;
+    t->nice = 0;
+    t->recnet_cpu = INT_FP(0);
     renew_priority(t, NULL);
   }    
 
@@ -434,6 +435,13 @@ void
 renew_recent_cpu(struct thread *t, void *aux UNUSED)
 {
   t->recnet_cpu = FP_ADD_MIX(FP_MUL(FP_DIV(FP_MUL_MIX(load_avg, 2), FP_ADD_MIX(FP_MUL_MIX(load_avg, 2), 1)), t->recnet_cpu), t->nice);
+}
+
+void
+add_recent_cpu(void)
+{
+  if(thread_current() != idle_thread)
+    thread_current()->recnet_cpu = FP_ADD_MIX(thread_current()->recnet_cpu, 1);
 }
 
 /* Returns 100 times the system load average. */

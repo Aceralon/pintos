@@ -187,6 +187,7 @@ timer_interrupt (struct intr_frame *args UNUSED)
   //lab4
   if(thread_mlfqs)
   {
+    add_recent_cpu();
     if(ticks % TIMER_FREQ == 0)
     {
       renew_load_avg();
