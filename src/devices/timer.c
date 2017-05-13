@@ -192,10 +192,11 @@ timer_interrupt (struct intr_frame *args UNUSED)
     {
       renew_load_avg();
       thread_foreach(renew_recent_cpu, NULL);
-      thread_foreach(renew_priority, NULL);
     }
     else if(ticks % 4 == 0)
-      renew_priority(thread_current(), NULL);
+      thread_foreach(renew_priority, NULL);
+    
+    thread_preempt();
   }
 }
 
