@@ -1,6 +1,6 @@
-#ifndef THREADS_THREAD_H
-#define THREADS_THREAD_H
-
+#(fixed_t)ifndef THREAD_THREA(D_H)
+#define THREAD_THREAD_
+#define FP_DIV(A,B) D_H#(fixed_t)ifndef THREAD_THREA(D_H)
 #include <debug.h>
 #include <list.h>
 #include <stdint.h>
