@@ -147,7 +147,7 @@ thread_tick (void)
   if(thread_mlfqs)
   {
     if(thread_current() != idle_thread)
-      thread_current()->recent_cpu = FP_ADD_MIX(thread_current()->recent_cpu, 1);
+      FP_ADD_MIX(thread_current()->recent_cpu, 1);
     if(cnt%4 == 0)
       thread_foreach(renew_priority, NULL);
     if(cnt%100 == 0)
@@ -235,7 +235,7 @@ thread_create (const char *name, int priority,
 
   //lab4
   if(thread_mlfqs)
-    renew_priority(t, NULL);
+    renew_priority(t);
 
   if(thread_current()->priority < t->priority)
     thread_yield();
@@ -429,7 +429,7 @@ renew_priority(struct thread *t, void *aux UNUSED)
 int
 thread_get_recent_cpu (void) 
 {
-  return FP_INT(FP_ADD(FP_MUL_MIX(thread_current()->recent_cpu, 100), thread_current()->recent_cpu >= 0 ? (1 << (FP_SHIFT_AMOUNT-1)) : (-1 << (FP_SHIFT_AMOUNT-1))));
+  return FP_INT(FP_MUL_MIX(thread_current()->recent_cpu, 100) + thread_current()->recent_cpu >= 0 ? (1 << (FP_SHIFT_AMOUNT-1) : (-1 << (FP_SHIFT_AMOUNT-1))));
 }
 
 void
@@ -442,7 +442,7 @@ renew_recent_cpu(struct thread *t, void *aux UNUSED)
 int
 thread_get_load_avg (void) 
 {
-  return FP_INT(FP_ADD(FP_MUL_MIX(load_avg, 100), (1 << (FP_SHIFT_AMOUNT-1))));
+  return FP_INT(FP_MUL_MIX(load_avg, 100) + load_avg >= 0 ? (1 << (FP_SHIFT_AMOUNT-1) : (-1 << (FP_SHIFT_AMOUNT-1))));
 }
 
 void

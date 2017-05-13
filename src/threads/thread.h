@@ -28,7 +28,7 @@ typedef int tid_t;
 typedef int fixed_t;
 #define FP_SHIFT_AMOUNT 16
 #define INT_FP(A) ((fixed_t)(A << FP_SHIFT_AMOUNT))
-#define FP_INT(A) ((int)(A >> FP_SHIFT_AMOUNT))
+#define FP_INT(A) (A >> FP_SHIFT_AMOUNT)
 #define FP_ADD(A,B) (A + B)
 #define FP_ADD_MIX(A,N) (A + (N << FP_SHIFT_AMOUNT))
 #define FP_SUB(A,B) (A - B)
