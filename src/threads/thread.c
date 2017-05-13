@@ -654,3 +654,4 @@ check_priority(struct thread *th)
 
   list_sort(&ready_list, is_higher_priority, NULL);
 }
+
