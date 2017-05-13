@@ -156,6 +156,8 @@ thread_tick (void)
       thread_foreach(renew_recent_cpu, NULL);
       cnt = 0;
     }
+
+    list_sort($ready_list, is_higher_priority, NULL);
   }
 
   /* Enforce preemption. */
