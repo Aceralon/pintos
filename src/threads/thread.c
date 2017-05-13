@@ -101,10 +101,6 @@ thread_init (void)
   init_thread (initial_thread, "main", PRI_DEFAULT);
   initial_thread->status = THREAD_RUNNING;
   initial_thread->tid = allocate_tid ();
-
-  //lab4
-  initial_thread->nice = 0;
-  initial_thread->recnet_cpu = INT_FP(0);
 }
 
 /* Starts preemptive thread scheduling by enabling interrupts.
@@ -125,6 +121,9 @@ thread_start (void)
 
   //lab4
   load_avg = INT_FP(0);
+
+  thread_current()->nice = 0;
+  thread_current()->recnet_cpu = INT_FP(0);
 }
 
 /* Called by the timer interrupt handler at each timer tick.
