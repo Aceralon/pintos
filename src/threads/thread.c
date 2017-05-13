@@ -142,28 +142,6 @@ thread_tick (void)
   else
     kernel_ticks++;
 
-  //lab4
-  if(thread_mlfqs)
-  {
-    enum intr_level old_level;
-    old_level = intr_disable();
-
-    ++cnt;
-    if(thread_current() != idle_thread)
-      thread_current()->recent_cpu = FP_ADD_MIX(thread_current()->recent_cpu, 1);
-    if((cnt>>2)<<2 == cnt)
-      thread_foreach(renew_priority, NULL);
-    if(cnt >= 100)
-    {
-      renew_load_avg();
-      thread_foreach(renew_recent_cpu, NULL);
-      cnt = 0;
-    }
-    list_sort(&ready_list, is_higher_priority, NULL);
-
-    intr_set_level(old_level);
-  }
-
   /* Enforce preemption. */
   if (++thread_ticks >= TIME_SLICE)
     intr_yield_on_return ();
