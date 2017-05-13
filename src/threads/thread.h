@@ -33,9 +33,9 @@ typedef int fixed_t;
 #define FP_ADD_MIX(A,N) (A + (N << FP_SHIFT_AMOUNT))
 #define FP_SUB(A,B) (A - B)
 #define FP_SUB_MIX(A,N) (A - (N << FP_SHIFT_AMOUNT))
-#define FP_MUL(A,B) ((((int64_t)A) * B) >> FP_SHIFT_AMOUNT)
+#define FP_MUL(A,B) ((fixed_t)((((int64_t)A) * B) >> FP_SHIFT_AMOUNT))
 #define FP_MUL_MIX(A,N) (A * N)
-#define FP_DIV(A,B) ((((int64_t)A) << FP_SHIFT_AMOUNT) / B)
+#define FP_DIV(A,B) ((fixed_t)((((int64_t)A) << FP_SHIFT_AMOUNT) / B))
 #define FP_DIV_MIX(A,N) (A / N)
 
 /* A kernel thread or user process.
