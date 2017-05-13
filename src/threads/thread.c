@@ -101,6 +101,10 @@ thread_init (void)
   init_thread (initial_thread, "main", PRI_DEFAULT);
   initial_thread->status = THREAD_RUNNING;
   initial_thread->tid = allocate_tid ();
+
+  //lab4
+  initial_thread->nice = 0;
+  initial_thread->recent_cpu = 0;
 }
 
 /* Starts preemptive thread scheduling by enabling interrupts.
@@ -212,6 +216,7 @@ thread_create (const char *name, int priority,
   /* Add to run queue. */
   thread_unblock (t);
 
+  //lab4
   if(thread_mlfqs)
     renew_priority(t);
 
@@ -373,14 +378,7 @@ thread_set_priority (int new_priority)
 int
 thread_get_priority (void) 
 {
-  return thread_current ()->priority;
-}
-
-/* Sets the current thread's nice value to NICE. */
-void
-thread_set_nice (int new_nice) 
-{
-  thread_current()->nice = new_nice;
+  return thread_current()->priority;
 }
 
 /* Returns the current thread's nice value. */
@@ -390,10 +388,19 @@ thread_get_nice (void)
   return thread_current()->nice;
 }
 
+/* Sets the current thread's nice value to NICE. */
+void
+thread_set_nice (int new_nice) 
+{
+  thread_current()->nice = new_nice;
+  renew_priority(thread_current());
+  thread_yield();
+}
+
 void
 renew_priority(struct thread *t)
 {
-  t->priority = PRI_MAX - FP_INT(FP_DIV_MIX(t->recent_cpu, 4)) - (t->nice * 2);
+  t->priority = -FP_INT(FP_SUB_MIX(FP_DIV_MIX(t->recent_cpu, 4), PRI_MAX)) - (t->nice * 2);
 
   if(t->priority > PRI_MAX)
     t->priority = PRI_MAX;
@@ -405,7 +412,7 @@ renew_priority(struct thread *t)
 int
 thread_get_recent_cpu (void) 
 {
-  return FP_INT(FP_MUL_MIX(thread_current()->recent_cpu, 100));
+  return FP_INT(FP_MUL_MIX(thread_current()->recent_cpu, 100) + thread_current()->recent_cpu >= 0 ? (1 << FP_SHIFT_AMOUNT-1) : -(1 << FP_SHIFT_AMOUNT-1));
 }
 
 void
@@ -418,15 +425,15 @@ renew_recent_cpu(struct thread *t)
 int
 thread_get_load_avg (void) 
 {
-  return FP_INT(FP_MUL_MIX(load_avg, 100));
+  return FP_INT(FP_MUL_MIX(load_avg, 100) + load_avg >= 0 ? (1 << FP_SHIFT_AMOUNT-1) : -(1 << FP_SHIFT_AMOUNT-1));
 }
 
 void
 renew_load_avg(void)
 {
   int ready_threads;
-  ready_threads = list_size(&ready_list) + thread_current() == idle_thread ? 0 : 1;
-  load_avg = FP_MUL(FP_DIV_MIX(INT_FP(59), 60), load_avg) + FP_DIV_MIX(INT_FP(ready_threads), 60);
+  ready_threads = (int)(list_size(&ready_list)) + (thread_current() == idle_thread ? 0 : 1);
+  load_avg = FP_MUL_MIX(FP_DIV_MIX(load_avg, 60), 59) + FP_DIV_MIX(INT_FP(ready_threads), 60);
 }
 
 /* Idle thread.  Executes when no other thread is ready to run.
@@ -516,13 +523,18 @@ init_thread (struct thread *t, const char *name, int priority)
   t->magic = THREAD_MAGIC;
   //list_push_back (&all_list, &t->allelem);
   list_insert_ordered (&all_list, &t->allelem, is_higher_priority, NULL);
+  
   //lab3
   t->old_priority = priority;
   t->blocked_lock = NULL;
   list_init(&t->locks);
+
   //lab4
-  t->nice = 0;
-  t->recent_cpu = 0;
+  if(thread_mlfqs && running_thread() != initial_thread)
+  {      
+    t->nice = thread_current()->nice;
+    t->recent_cpu = thread_current()->recent_cpu;
+  }
 }
 
 /* Allocates a SIZE-byte frame at the top of thread T's stack and
