@@ -177,4 +177,6 @@ bool is_higher_priority(const struct list_elem *a, const struct list_elem *b, vo
 bool lock_is_higher_priority(const struct list_elem *a, const struct list_elem *b, void *aux);
 void check_priority(struct thread *th);
 
+void thread_preempt(void);
+
 #endif /* threads/thread.h */

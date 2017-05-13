@@ -229,8 +229,9 @@ thread_create (const char *name, int priority,
     renew_priority(t, NULL);
   }    
 
-  if(thread_current()->priority < t->priority)
-    thread_yield();
+  // if(thread_current()->priority < t->priority)
+  //   thread_yield();
+  thread_preempt();
 
   return tid;
 }
@@ -378,9 +379,10 @@ thread_set_priority (int new_priority)
   curr->old_priority = new_priority;
   check_priority(curr);
 
-  struct thread *max = list_entry(list_begin (&ready_list), struct thread, elem);
-  if(max->priority > curr->priority)
-    thread_yield();
+  thread_preempt();
+  // struct thread *max = list_entry(list_begin (&ready_list), struct thread, elem);
+  // if(max->priority > curr->priority)
+  //   thread_yield();
 }
 
 /* Returns the current thread's priority. */
@@ -403,7 +405,8 @@ thread_set_nice (int new_nice)
 {
   thread_current()->nice = new_nice;
   renew_priority(thread_current(), NULL);
-  thread_yield();
+  // thread_yield();
+  thread_preempt();
 }
 
 void
@@ -715,3 +718,9 @@ check_priority(struct thread *th)
   list_sort(&ready_list, is_higher_priority, NULL);
 }
 
+void thread_preempt(void)
+{
+    struct thread *max = list_entry(list_begin (&ready_list), struct thread, elem);
+    if(max->priority > thread_current()->priority)
+      thread_yield();
+}
