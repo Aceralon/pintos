@@ -142,14 +142,14 @@ thread_tick (void)
     kernel_ticks++;
 
   //lab4
-  int64_t now_tick = timer_ticks();
+  int64_t now_ticks = timer_ticks();
   if(thread_mlfqs)
   {
     if(thread_current() != idle_thread)
       FP_ADD_MIX(thread_current()->recent_cpu, 1);
     if(now_ticks%4 == 0)
       thread_foreach(renew_priority, NULL);
-    if(now_ticks%TIMER_FREQ == 0)
+    if(now_ticks%100 == 0)
     {
       renew_load_avg();
       thread_foreach(renew_recent_cpu, NULL);
@@ -447,8 +447,8 @@ void
 renew_load_avg(void)
 {
   int ready_threads;
-  ready_threads = (int)(list_size(&ready_list)) + (thread_current() == idle_thread ? 0 : 1);
-  load_avg = FP_MUL_MIX(FP_DIV_MIX(load_avg, 60), 59) + FP_DIV_MIX(INT_FP(ready_threads), 60);
+  ready_threads = list_size(&ready_list) + (thread_current() == idle_thread ? 0 : 1);
+  load_avg = FP_ADD(FP_MUL_MIX(FP_DIV_MIX(load_avg, 60), 59), FP_DIV_MIX(INT_FP(ready_threads), 60));
 }
 
 /* Idle thread.  Executes when no other thread is ready to run.
