@@ -145,9 +145,6 @@ thread_tick (void)
   //lab4
   if(thread_mlfqs)
   {
-    enum intr_level old_level;
-    old_level = intr_disable();
-
     ++cnt;
     if(thread_current() != idle_thread)
       thread_current()->recent_cpu = FP_ADD_MIX(thread_current()->recent_cpu, 1);
@@ -159,9 +156,8 @@ thread_tick (void)
       thread_foreach(renew_recent_cpu, NULL);
       cnt = 0;
     }
-    list_sort(&ready_list, is_higher_priority, NULL);
 
-    intr_set_level(old_level);
+    list_sort($ready_list, is_higher_priority, NULL);
   }
 
   /* Enforce preemption. */
