@@ -61,6 +61,7 @@ bool thread_mlfqs;
 
 //lab4
 static fixed_t load_avg = 0;
+static int cnt = 0;
 
 static void kernel_thread (thread_func *, void *aux);
 
@@ -142,17 +143,18 @@ thread_tick (void)
     kernel_ticks++;
 
   //lab4
-  int64_t now_ticks = timer_ticks();
+  ++cnt;
   if(thread_mlfqs)
   {
     if(thread_current() != idle_thread)
       FP_ADD_MIX(thread_current()->recent_cpu, 1);
-    if(now_ticks%4 == 0)
+    if(cnt%4 == 0)
       thread_foreach(renew_priority, NULL);
-    if(now_ticks%100 == 0)
+    if(cnt%100 == 0)
     {
       renew_load_avg();
       thread_foreach(renew_recent_cpu, NULL);
+      cnt = 0;
     }
   }
 
@@ -413,7 +415,7 @@ thread_set_nice (int new_nice)
 }
 
 void
-renew_priority(struct thread *t)
+renew_priority(struct thread *t, void *aux UNUSED)
 {
   t->priority = -FP_INT(FP_SUB_MIX(FP_DIV_MIX(t->recent_cpu, 4), PRI_MAX)) - (t->nice * 2);
 
@@ -427,11 +429,11 @@ renew_priority(struct thread *t)
 int
 thread_get_recent_cpu (void) 
 {
-  return FP_INT(FP_MUL_MIX(thread_current()->recent_cpu, 100) + thread_current()->recent_cpu >= 0 ? (1 << FP_SHIFT_AMOUNT-1) : -(1 << FP_SHIFT_AMOUNT-1));
+  return FP_INT(FP_MUL_MIX(thread_current()->recent_cpu, 100) + thread_current()->recent_cpu >= 0 ? (1 << (FP_SHIFT_AMOUNT-1) : (-1 << (FP_SHIFT_AMOUNT-1))));
 }
 
 void
-renew_recent_cpu(struct thread *t)
+renew_recent_cpu(struct thread *t, void *aux UNUSED)
 {
   t->recent_cpu = FP_MUL(FP_DIV(FP_MUL_MIX(load_avg, 2), FP_ADD_MIX(FP_MUL_MIX(load_avg, 2), 1)), t->recent_cpu) + INT_FP(t->nice);
 }
@@ -440,7 +442,7 @@ renew_recent_cpu(struct thread *t)
 int
 thread_get_load_avg (void) 
 {
-  return FP_INT(FP_MUL_MIX(load_avg, 100) + load_avg >= 0 ? (1 << FP_SHIFT_AMOUNT-1) : -(1 << FP_SHIFT_AMOUNT-1));
+  return FP_INT(FP_MUL_MIX(load_avg, 100) + load_avg >= 0 ? (1 << (FP_SHIFT_AMOUNT-1) : (-1 << (FP_SHIFT_AMOUNT-1))));
 }
 
 void
