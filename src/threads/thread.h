@@ -162,7 +162,7 @@ void thread_set_nice (int new_nice);
 void renew_priority(struct thread *t, void *aux);
 
 int thread_get_recent_cpu (void);
-void renew_recnet_cpu(struct thread *t, void *aux);
+void renew_recent_cpu(struct thread *t, void *aux);
 
 int thread_get_load_avg (void);
 void renew_load_avg(void);
