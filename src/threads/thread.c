@@ -438,7 +438,8 @@ thread_get_recent_cpu (void)
 void
 renew_recent_cpu(struct thread *t, void *aux UNUSED)
 {
-  t->recent_cpu = FP_MUL(FP_DIV(FP_MUL_MIX(load_avg, 2), FP_ADD_MIX(FP_MUL_MIX(load_avg, 2), 1)), t->recent_cpu) + INT_FP(t->nice);
+  if(t != idle_thread)
+    t->recent_cpu = FP_ADD_MIX(FP_MUL(FP_DIV(FP_MUL_MIX(load_avg, 2), FP_ADD_MIX(FP_MUL_MIX(load_avg, 2), 1)), t->recent_cpu), t->nice);
 }
 
 /* Returns 100 times the system load average. */
@@ -453,7 +454,7 @@ renew_load_avg(void)
 {
   int ready_threads;
   ready_threads = list_size(&ready_list) + (thread_current() == idle_thread ? 0 : 1);
-  load_avg = FP_ADD(FP_MUL_MIX(FP_DIV_MIX(load_avg, 60), 59), FP_DIV_MIX(INT_FP(ready_threads), 60));
+  load_avg = FP_DIV_MIX(FP_ADD_MIX(FP_MUL_MIX(load_avg, 59), ready_threads), 60);
 }
 
 /* Idle thread.  Executes when no other thread is ready to run.
