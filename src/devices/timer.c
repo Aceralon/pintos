@@ -187,13 +187,14 @@ timer_interrupt (struct intr_frame *args UNUSED)
   //lab4
   if(thread_mlfqs)
   {
-    if(ticks % 4 == 0)
-      thread_foreach(renew_priority, NULL);
     if(ticks % TIMER_FREQ == 0)
     {
-      thread_foreach(renew_recent_cpu, NULL);
       renew_load_avg();
+      thread_foreach(renew_recent_cpu, NULL);
+      thread_foreach(renew_priority, NULL);
     }
+    else if(ticks % 4 == 0)
+      renew_priority(thread_current(), NULL));
   }
 }
 
