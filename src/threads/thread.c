@@ -59,6 +59,9 @@ static unsigned thread_ticks;   /* # of timer ticks since last yield. */
    Controlled by kernel command-line option "-o mlfqs". */
 bool thread_mlfqs;
 
+//lab4
+static fixed_t load_avg = 0;
+
 static void kernel_thread (thread_func *, void *aux);
 
 static void idle (void *aux UNUSED);
@@ -98,6 +101,10 @@ thread_init (void)
   init_thread (initial_thread, "main", PRI_DEFAULT);
   initial_thread->status = THREAD_RUNNING;
   initial_thread->tid = allocate_tid ();
+
+  //lab4
+  initial_thread->nice = 0;
+  initial_thread->recnet_cpu = 0;
 }
 
 /* Starts preemptive thread scheduling by enabling interrupts.
@@ -137,6 +144,11 @@ thread_tick (void)
   /* Enforce preemption. */
   if (++thread_ticks >= TIME_SLICE)
     intr_yield_on_return ();
+
+  if(thread_mlfqs && thread_current() != idle_thread)
+  {
+    thread_current()->recnet_cpu = FP_ADD_MIX(thread_current()->recnet_cpu, 1);
+  }
 }
 
 /* Prints thread statistics. */
@@ -209,7 +221,11 @@ thread_create (const char *name, int priority,
   /* Add to run queue. */
   thread_unblock (t);
 
-  if(thread_current()->priority < priority)
+  //lab4
+  if(thread_mlfqs)
+    renew_priority(t, NULL);
+
+  if(thread_current()->priority < t->priority)
     thread_yield();
 
   return tid;
@@ -370,35 +386,62 @@ thread_get_priority (void)
   return thread_current ()->priority;
 }
 
-/* Sets the current thread's nice value to NICE. */
-void
-thread_set_nice (int nice UNUSED) 
-{
-  /* Not yet implemented. */
-}
-
 /* Returns the current thread's nice value. */
 int
 thread_get_nice (void) 
 {
-  /* Not yet implemented. */
-  return 0;
+  return thread_current()->nice;
 }
 
-/* Returns 100 times the system load average. */
-int
-thread_get_load_avg (void) 
+/* Sets the current thread's nice value to NICE. */
+void
+thread_set_nice (int new_nice) 
 {
-  /* Not yet implemented. */
-  return 0;
+  thread_current()->nice = new_nice;
+  renew_priority(thread_current(), NULL);
+  thread_yield();
+}
+
+void
+renew_priority(struct thread *t, void *aux UNUSED)
+{
+  t->priority = FP_INT(FP_SUB(INT_FP(PRI_MAX), FP_DIV_MIX(t->recnet_cpu, 4))) - t->nice * 2;
+
+  if(t->priority > PRI_MAX)
+    t->priority = PRI_MAX;
+  else if(t->priority < PRI_MIN)
+    t->priority = PRI_MIN;
 }
 
 /* Returns 100 times the current thread's recent_cpu value. */
 int
 thread_get_recent_cpu (void) 
 {
-  /* Not yet implemented. */
-  return 0;
+  if(t->recnet_cpu >= 0)
+    return FP_INT(FP_ADD(FP_MUL_MIX(t->recnet_cpu, 100), (1 << (FP_SHIFT_AMOUNT - 1))));
+  else
+    return FP_INT(FP_SUB(FP_MUL_MIX(t->recnet_cpu, 100), (1 << (FP_SHIFT_AMOUNT - 1))));
+}
+
+void
+renew_recent_cpu(struct thread *t, void *aux UNUSED)
+{
+  t->recnet_cpu = FP_ADD_MIX(FP_MUL(FP_DIV(FP_MUL_MIX(load_avg, 2), FP_ADD_MIX(FP_MUL_MIX(load_avg, 2), 1)), t->recnet_cpu), t->nice);
+}
+
+/* Returns 100 times the system load average. */
+int
+thread_get_load_avg (void) 
+{
+  return FP_INT(FP_ADD(FP_MUL_MIX(load_avg, 100), (1 << (FP_SHIFT_AMOUNT - 1))));
+}
+
+void
+renew_load_avg(void)
+{
+  int ready_threads;
+  ready_threads = list_count(&ready_list) + (thread_current() == idle_thread ? 0 : 1);
+  load_avg = FP_DIV_MIX(FP_ADD_MIX(FP_MUL_MIX(load_avg, 59), ready_threads), 60);
 }
 
 /* Idle thread.  Executes when no other thread is ready to run.
@@ -492,6 +535,10 @@ init_thread (struct thread *t, const char *name, int priority)
   t->old_priority = priority;
   t->blocked_lock = NULL;
   list_init(&t->locks);
+
+  //lab4
+  t->nice = thread_current()->nice;
+  t->recnet_cpu = thread_current()->recnet_cpu;
 }
 
 /* Allocates a SIZE-byte frame at the top of thread T's stack and
