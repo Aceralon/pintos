@@ -194,7 +194,7 @@ timer_interrupt (struct intr_frame *args UNUSED)
       thread_foreach(renew_priority, NULL);
     }
     else if(ticks % 4 == 0)
-      renew_priority(thread_current(), NULL));
+      renew_priority(thread_current(), NULL);
   }
 }
 
