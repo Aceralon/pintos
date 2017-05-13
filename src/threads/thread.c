@@ -410,7 +410,7 @@ void
 thread_set_nice (int new_nice) 
 {
   thread_current()->nice = new_nice;
-  renew_priority(thread_current(), NULL);
+  renew_priority(thread_current());
   thread_yield();
 }
 
