@@ -143,14 +143,14 @@ thread_tick (void)
     kernel_ticks++;
 
   //lab4
-  ++cnt;
   if(thread_mlfqs)
   {
+    ++cnt;
     if(thread_current() != idle_thread)
       thread_current()->recent_cpu = FP_ADD_MIX(thread_current()->recent_cpu, 1);
-    if(cnt%4 == 0)
+    if((cnt>>2)<<2 == cnt)
       thread_foreach(renew_priority, NULL);
-    if(cnt%100 == 0)
+    if(cnt >= 100)
     {
       renew_load_avg();
       thread_foreach(renew_recent_cpu, NULL);
