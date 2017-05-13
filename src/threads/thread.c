@@ -222,10 +222,10 @@ thread_create (const char *name, int priority,
   //lab4
   if(thread_mlfqs)
   { 
-    // t->nice = thread_current()->nice;
-    // t->recnet_cpu = thread_current()->recnet_cpu;
-    t->nice = 0;
-    t->recnet_cpu = INT_FP(0);
+    t->nice = thread_current()->nice;
+    t->recnet_cpu = thread_current()->recnet_cpu;
+    // t->nice = 0;
+    // t->recnet_cpu = INT_FP(0);
     renew_priority(t, NULL);
   }    
 
@@ -720,7 +720,9 @@ check_priority(struct thread *th)
 
 void thread_preempt(void)
 {
-    struct thread *max = list_entry(list_begin (&ready_list), struct thread, elem);
-    if(max->priority > thread_current()->priority)
-      thread_yield();
+  enum intr_level old_level = intr_disable();
+  struct thread *max = list_entry(list_begin (&ready_list), struct thread, elem);
+  if(max->priority > thread_current()->priority)
+    thread_yield();
+  intr_set_level(old_level);
 }
