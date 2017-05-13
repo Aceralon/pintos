@@ -429,7 +429,10 @@ renew_priority(struct thread *t, void *aux UNUSED)
 int
 thread_get_recent_cpu (void) 
 {
-  return FP_INT(FP_ADD(FP_MUL_MIX(thread_current()->recent_cpu, 100), thread_current()->recent_cpu >= 0 ? (1 << (FP_SHIFT_AMOUNT-1)) : (-1 << (FP_SHIFT_AMOUNT-1))));
+  if(thread_current()->recent_cpu >= 0)
+    return FP_INT(FP_ADD(FP_MUL_MIX(thread_current()->recent_cpu, 100), (1 << (FP_SHIFT_AMOUNT-1))));
+  else
+    return FP_INT(FP_SUB(FP_MUL_MIX(thread_current()->recent_cpu, 100), (1 << (FP_SHIFT_AMOUNT-1))));
 }
 
 void
