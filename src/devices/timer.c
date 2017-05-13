@@ -20,6 +20,9 @@
 /* Number of timer ticks since OS booted. */
 static int64_t ticks;
 
+//lab4
+static int cnt = 0;
+
 /* Number of loops per timer tick.
    Initialized by timer_calibrate(). */
 static unsigned loops_per_tick;
@@ -182,22 +185,20 @@ timer_interrupt (struct intr_frame *args UNUSED)
 {
   ticks++;
   thread_tick ();
-
   //lab4
   if(thread_mlfqs)
   {
-    if(thread_current() != idle_thread)
-      FP_ADD_MIX(thread_current()->recent_cpu, 1);
-    if(ticks%4 == 0)
+    cnt++;
+    FP_ADD_MIX(thread_current()->recent_cpu, 1);
+    if(cnt%4 == 0)
       thread_foreach(renew_priority, NULL);
-    if(ticks%TIMER_FREQ == 0)
+    if(cnt >= 100)
     {
-      renew_load_avg();
+      thread_foreach(renew_load_avg, NULL);
       thread_foreach(renew_recent_cpu, NULL);
       cnt = 0;
     }
   }
-
   thread_foreach(blocked_thread_check, NULL);
 }
 
