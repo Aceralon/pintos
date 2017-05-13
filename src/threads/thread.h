@@ -25,7 +25,7 @@ typedef int tid_t;
 #define PRI_MAX 63                      /* Highest priority. */
 
 //define the float point calculation need
-typedef int fixed_t;
+typedef int fixed_t
 #define FP_SHIFT_AMOUNT 16
 #define INT_FP(A) ((fixed_t)(A << FP_SHIFT_AMOUNT))
 #define FP_INT(A) ((int)(A >> FP_SHIFT_AMOUNT))
@@ -160,10 +160,10 @@ void thread_set_priority (int);
 //lab4
 int thread_get_nice (void);
 void thread_set_nice (int);
-void renew_priority(struct thread *t);
+void renew_priority(struct thread *t)
 
 int thread_get_recent_cpu (void);
-void renew_recent_cpu(struct thread *t);
+void renew_recent_cpu(struct thread *t)
 
 int thread_get_load_avg (void);
 void renew_load_avg(void);
