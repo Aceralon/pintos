@@ -183,20 +183,6 @@ timer_interrupt (struct intr_frame *args UNUSED)
   ticks++;
   thread_tick ();
   thread_foreach(blocked_thread_check, NULL);
-
-    //lab4
-  if(thread_mlfqs)
-  {
-    if(thread_name() != "idle")
-      thread_current()->recent_cpu = FP_ADD_MIX(thread_current()->recent_cpu, 1);
-    if(ticks%4 == 0)
-      thread_foreach(renew_priority, NULL);
-    if(ticks%TIMER_FREQ == 0)
-    {
-      renew_load_avg();
-      thread_foreach(renew_recent_cpu, NULL);
-    }
-  }
 }
 
 /* Returns true if LOOPS iterations waits for more than one timer
