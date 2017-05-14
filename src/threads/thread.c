@@ -718,7 +718,7 @@ check_priority(struct thread *th)
 
 void thread_preempt(void)
 {
-  assert(!intr_context())
+  ASSERT(!intr_context());
 
   enum intr_level old_level = intr_disable();
   struct thread *max = list_entry(list_begin (&ready_list), struct thread, elem);
