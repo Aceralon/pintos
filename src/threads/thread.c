@@ -101,6 +101,11 @@ thread_init (void)
   init_thread (initial_thread, "main", PRI_DEFAULT);
   initial_thread->status = THREAD_RUNNING;
   initial_thread->tid = allocate_tid ();
+
+  //lab4
+  load_avg = INT_FP(0);
+  initial_thread->nice = 0;
+  initial_thread->recent_cpu = INT_FP(0);
 }
 
 /* Starts preemptive thread scheduling by enabling interrupts.
@@ -118,12 +123,6 @@ thread_start (void)
 
   /* Wait for the idle thread to initialize idle_thread. */
   sema_down (&idle_started);
-
-  //lab4
-  load_avg = INT_FP(0);
-
-  thread_current()->nice = 0;
-  thread_current()->recnet_cpu = INT_FP(0);
 }
 
 /* Called by the timer interrupt handler at each timer tick.
@@ -222,9 +221,9 @@ thread_create (const char *name, int priority,
   if(thread_mlfqs)
   { 
     t->nice = thread_current()->nice;
-    t->recnet_cpu = thread_current()->recnet_cpu;
+    t->recent_cpu = thread_current()->recent_cpu;
     // t->nice = 0;
-    // t->recnet_cpu = INT_FP(0);
+    // t->recent_cpu = INT_FP(0);
     renew_priority(t, NULL);
   }    
 
@@ -413,7 +412,7 @@ renew_priority(struct thread *t, void *aux UNUSED)
 {
   if(t != idle_thread)
   {
-    t->priority = FP_INT_N(FP_SUB(INT_FP(PRI_MAX), FP_DIV_MIX(t->recnet_cpu, 4))) - 2 * t->nice;
+    t->priority = FP_INT_N(FP_SUB(INT_FP(PRI_MAX), FP_DIV_MIX(t->recent_cpu, 4))) - 2 * t->nice;
 
     if(t->priority > PRI_MAX)
       t->priority = PRI_MAX;
@@ -426,24 +425,24 @@ renew_priority(struct thread *t, void *aux UNUSED)
 int
 thread_get_recent_cpu (void) 
 {
-  // if(thread_current()->recnet_cpu >= 0)
-  //   return FP_INT(FP_ADD(FP_MUL_MIX(thread_current()->recnet_cpu, 100), (1 << (FP_SHIFT_AMOUNT - 1))));
+  // if(thread_current()->recent_cpu >= 0)
+  //   return FP_INT(FP_ADD(FP_MUL_MIX(thread_current()->recent_cpu, 100), (1 << (FP_SHIFT_AMOUNT - 1))));
   // else
-  //   return FP_INT(FP_SUB(FP_MUL_MIX(thread_current()->recnet_cpu, 100), (1 << (FP_SHIFT_AMOUNT - 1))));
-  return FP_INT_N(FP_MUL_MIX(thread_current()->recnet_cpu, 100));
+  //   return FP_INT(FP_SUB(FP_MUL_MIX(thread_current()->recent_cpu, 100), (1 << (FP_SHIFT_AMOUNT - 1))));
+  return FP_INT_N(FP_MUL_MIX(thread_current()->recent_cpu, 100));
 }
 
 void
 renew_recent_cpu(struct thread *t, void *aux UNUSED)
 {
-  t->recnet_cpu = FP_ADD_MIX(FP_MUL(FP_DIV(FP_MUL_MIX(load_avg, 2), FP_ADD_MIX(FP_MUL_MIX(load_avg, 2), 1)), t->recnet_cpu), t->nice);
+  t->recent_cpu = FP_ADD_MIX(FP_MUL(FP_DIV(FP_MUL_MIX(load_avg, 2), FP_ADD_MIX(FP_MUL_MIX(load_avg, 2), 1)), t->recent_cpu), t->nice);
 }
 
 void
 add_recent_cpu(void)
 {
   if(thread_current() != idle_thread)
-    thread_current()->recnet_cpu = FP_ADD_MIX(thread_current()->recnet_cpu, 1);
+    thread_current()->recent_cpu = FP_ADD_MIX(thread_current()->recent_cpu, 1);
 }
 
 /* Returns 100 times the system load average. */
@@ -719,6 +718,8 @@ check_priority(struct thread *th)
 
 void thread_preempt(void)
 {
+  assert(!intr_context())
+
   enum intr_level old_level = intr_disable();
   struct thread *max = list_entry(list_begin (&ready_list), struct thread, elem);
   if(max->priority > thread_current()->priority)
