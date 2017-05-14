@@ -125,7 +125,7 @@ struct thread
     struct lock *blocked_lock;
     //lab4
     int nice;
-    fixed_t recnet_cpu;
+    fixed_t recent_cpu;
   };
 
 /* If false (default), use round-robin scheduler.
