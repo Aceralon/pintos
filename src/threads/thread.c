@@ -222,13 +222,9 @@ thread_create (const char *name, int priority,
   { 
     t->nice = thread_current()->nice;
     t->recent_cpu = thread_current()->recent_cpu;
-    // t->nice = 0;
-    // t->recent_cpu = INT_FP(0);
     renew_priority(t, NULL);
   }    
 
-  // if(thread_current()->priority < t->priority)
-  //   thread_yield();
   thread_preempt();
 
   return tid;
@@ -378,9 +374,6 @@ thread_set_priority (int new_priority)
   check_priority(curr);
 
   thread_preempt();
-  // struct thread *max = list_entry(list_begin (&ready_list), struct thread, elem);
-  // if(max->priority > curr->priority)
-  //   thread_yield();
 }
 
 /* Returns the current thread's priority. */
@@ -403,7 +396,6 @@ thread_set_nice (int new_nice)
 {
   thread_current()->nice = new_nice;
   renew_priority(thread_current(), NULL);
-  // thread_yield();
   thread_preempt();
 }
 
@@ -425,11 +417,7 @@ renew_priority(struct thread *t, void *aux UNUSED)
 int
 thread_get_recent_cpu (void) 
 {
-  // if(thread_current()->recent_cpu >= 0)
-  //   return FP_INT(FP_ADD(FP_MUL_MIX(thread_current()->recent_cpu, 100), (1 << (FP_SHIFT_AMOUNT - 1))));
-  // else
-  //   return FP_INT(FP_SUB(FP_MUL_MIX(thread_current()->recent_cpu, 100), (1 << (FP_SHIFT_AMOUNT - 1))));
-  return FP_INT_N(FP_MUL_MIX(thread_current()->recent_cpu, 100));
+   return FP_INT_N(FP_MUL_MIX(thread_current()->recent_cpu, 100));
 }
 
 void
@@ -449,7 +437,6 @@ add_recent_cpu(void)
 int
 thread_get_load_avg (void) 
 {
-  // return FP_INT(FP_ADD(FP_MUL_MIX(load_avg, 100), (1 << (FP_SHIFT_AMOUNT - 1))));
   return FP_INT_N(FP_MUL_MIX(load_avg, 100));
 }
 
