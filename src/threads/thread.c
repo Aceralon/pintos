@@ -698,6 +698,8 @@ lock_is_higher_priority(const struct list_elem *a, const struct list_elem *b, vo
 void //seems well to me
 check_priority(struct thread *th)
 {
+  if(thread_mlfqs)
+    return;
   int max_priority = -1;
   if(!list_empty(&th->locks))
   {
@@ -709,9 +711,7 @@ check_priority(struct thread *th)
       th->priority = th->old_priority;
   }
   else //no locks
-  {
     th->priority = th->old_priority;
-  }
 
   list_sort(&ready_list, is_higher_priority, NULL);
 }
