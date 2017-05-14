@@ -195,8 +195,6 @@ timer_interrupt (struct intr_frame *args UNUSED)
     }
     if(ticks % 4 == 0)
       thread_foreach(renew_priority, NULL);
-    
-    thread_preempt();
   }
 }
 
